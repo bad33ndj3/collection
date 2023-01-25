@@ -168,17 +168,15 @@ func (c *Collection[N, T]) Min() T {
 }
 
 // Partition splits the elements in the collection into two slices based on the given function
-func (c *Collection[N, T]) Partition(fn func(T) bool) ([]T, []T) {
-	var leftList []T
-	var rightList []T
+func (c *Collection[N, T]) Partition(fn func(T) bool) (passed []T, failed []T) {
 	for _, val := range c.list {
 		if fn(val) {
-			leftList = append(leftList, val)
+			passed = append(passed, val)
 		} else {
-			rightList = append(rightList, val)
+			failed = append(failed, val)
 		}
 	}
-	return leftList, rightList
+	return
 }
 
 // Reject returns a new slice with elements that do not pass the given function
