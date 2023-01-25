@@ -25,6 +25,7 @@ func (s *CollectionTestSuite) SetupTest() {
 	}
 	s.col = New[int, *Item](data)
 }
+
 func (s *CollectionTestSuite) TestNew() {
 	col := New[int, *Item]([]*Item{})
 	s.NotNil(col)
@@ -35,6 +36,7 @@ func (s *CollectionTestSuite) TestAverage() {
 	avg := s.col.Average()
 	s.Equal(2, avg)
 }
+
 func (s *CollectionTestSuite) TestAvg() {
 	avg := s.col.Avg()
 	s.Equal(2, avg)
@@ -159,6 +161,7 @@ func (s *CollectionTestSuite) TestPartition() {
 		s.Equal(1, val.value%2)
 	}
 }
+
 func (s *CollectionTestSuite) TestReject() {
 	rejected := s.col.Reject(func(val *Item) bool {
 		return val.value%2 == 0
@@ -301,6 +304,7 @@ func (i *Item) Number() int {
 func (i *Item) UID() string {
 	return i.uid
 }
+
 func (i *Item) IsNil() bool {
 	return i == nil
 }
