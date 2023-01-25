@@ -1,4 +1,4 @@
-module github.com/bad33ndj3/go-collection
+module github.com/bad33ndj3/collection
 
 go 1.18
 
