@@ -1,95 +1,310 @@
-// Package collection implements helper functions for working with a collection of anything.
+// Package collection provides a generic collection type and various functions to work with it.
 package collection
 
-import "fmt"
-
-var (
-	// ErrIndexOutOfRange is returned when an index is out of range.
-	ErrIndexOutOfRange = fmt.Errorf("index out of range")
+import (
+	"sort"
 )
 
-// Collection is a collection of items.
-type Collection[T any] interface {
-	// Len returns the number of items in the collection.
-	Len() int
-	// Get returns the item at the given index.
-	Get(int) (*T, error)
-	// Set sets the item at the given index to the given value.
-	Set(int, *T) Collection[T]
-	// Exists returns true if the index exists in the collection.
-	Exists(int) bool
-	// Remove deletes the item at the given index.
-	Remove(int) (Collection[T], error)
-	// Append adds the given item to the end of the collection.
-	Append(*T) Collection[T]
-	// Prepend adds the given item to the beginning of the collection.
-	Prepend(*T) Collection[T]
-	// Insert adds the given item at the given index.
-	Insert(int, *T) Collection[T]
+// Number is a generic type that holds all available number types.
+// This is used for methods such as Sum, Max and Avg.
+type Number interface {
+	int | int8 | int16 | int32 | int64 | float32 | float64
 }
 
-// New creates a new collection from the given slice.
-func New[T any](slice []*T) Collection[T] {
-	return &collection[T]{slice: slice}
+// Collection is a generic type that holds a slice of values of type T.
+type Collection[N Number, T Collectable[T, N]] struct {
+	// list holds the slice of values
+	list []T
 }
 
-type collection[T any] struct {
-	slice []*T
+// New returns a new Collection of type T.
+func New[N Number, T Collectable[T, N]](list []T) *Collection[N, T] {
+	return &Collection[N, T]{
+		list: list,
+	}
 }
 
-// Len returns the length of the collection.
-func (c *collection[T]) Len() int {
-	return len(c.slice)
+// Collectable is an interface that combines the Comparable interface with the necessary methods for a collection.
+type Collectable[T any, N Number] interface {
+	// Compare compares the current value to another value of the same type
+	// It returns a negative number if the current value is less than the other value
+	// It returns a positive number if the current value is greater than the other value
+	// It returns zero if the current value is equal to the other value
+	Compare(other T) int
+	// Number returns a number representation of the value.
+	Number() N
+	// UID returns a unique representation of the value as a string.
+	UID() string
+	// IsNil returns true if the value is nil.
+	IsNil() bool
 }
 
-// Get returns the item at the given index.
-func (c *collection[T]) Get(i int) (*T, error) {
-	if i < 0 || i >= c.Len() {
-		return nil, ErrIndexOutOfRange
+// Average calculates the average of the elements in the collection
+func (c *Collection[N, T]) Average() N {
+	var sum N
+	for _, val := range c.list {
+		sum += val.Number()
+	}
+	return sum / N(len(c.list))
+}
+
+// Avg is an alias for Average
+func (c *Collection[N, T]) Avg() N {
+	return c.Average()
+}
+
+// Contains checks if the given value is present in the collection
+func (c *Collection[N, T]) Contains(val T) bool {
+	for _, item := range c.list {
+		if item.Compare(val) == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// Each iterates over the elements in the collection and applies the given function to each element
+func (c *Collection[N, T]) Each(fn func(T)) *Collection[N, T] {
+	for _, val := range c.list {
+		fn(val)
 	}
 
-	return c.slice[i], nil
-}
-
-// Set sets the item at the given index to the given value.
-func (c *collection[T]) Set(i int, v *T) Collection[T] {
-	c.slice[i] = v
-
 	return c
 }
 
-// Exists returns true if the index exists in the collection.
-func (c *collection[T]) Exists(i int) bool {
-	return i >= 0 && i < c.Len()
-}
-
-// Remove deletes the item at the given index.
-func (c *collection[T]) Remove(i int) (Collection[T], error) {
-	if i < 0 || i >= c.Len() {
-		return nil, ErrIndexOutOfRange
+// Every checks if the given function returns true for all elements in the collection
+func (c *Collection[N, T]) Every(fn func(T) bool) bool {
+	for _, val := range c.list {
+		if !fn(val) {
+			return false
+		}
 	}
-	c.slice = append(c.slice[:i], c.slice[i+1:]...)
-
-	return c, nil
+	return true
 }
 
-// Append adds the given item to the end of the collection.
-func (c *collection[T]) Append(v *T) Collection[T] {
-	c.slice = append(c.slice, v)
+// Filter returns a new slice with elements that pass the given function
+func (c *Collection[N, T]) Filter(fn func(T) bool) []T {
+	var filteredList []T
+	for _, val := range c.list {
+		if fn(val) {
+			filteredList = append(filteredList, val)
+		}
+	}
+	return filteredList
+}
+
+// First returns the first element in the collection
+func (c *Collection[N, T]) First() T {
+	if len(c.list) > 0 {
+		return c.list[0]
+	}
+	return *new(T)
+}
+
+// FlatMap applies the given function to each element in the collection and flattens the resulting slices
+func (c *Collection[N, T]) FlatMap(fn func(T) []T) []T {
+	var flatList []T
+	for _, val := range c.list {
+		flatList = append(flatList, fn(val)...)
+	}
+	return flatList
+}
+
+// GroupBy groups the elements in the collection by the key returned by the given function
+func (c *Collection[N, T]) GroupBy(fn func(T) string) map[string][]T {
+	grouped := make(map[string][]T)
+	for _, val := range c.list {
+		key := fn(val)
+		grouped[key] = append(grouped[key], val)
+	}
+	return grouped
+}
+
+// KeyBy creates a map of elements in the collection with keys returned by the given function
+func (c *Collection[N, T]) KeyBy(fn func(T) string) map[string]T {
+	keyed := make(map[string]T)
+	for _, val := range c.list {
+		key := fn(val)
+		keyed[key] = val
+	}
+	return keyed
+}
+
+// Map applies the given function to each element in the collection and returns a new slice
+func (c *Collection[N, T]) Map(fn func(T) T) []T {
+	var mappedList []T
+	for _, val := range c.list {
+		mappedList = append(mappedList, fn(val))
+	}
+	return mappedList
+}
+
+// Max returns the maximum element in the collection
+func (c *Collection[N, T]) Max() T {
+	if len(c.list) == 0 {
+		return *new(T)
+	}
+	var max T
+	for _, val := range c.list {
+		if max.IsNil() || val.Number() > max.Number() {
+			max = val
+		}
+	}
+	return max
+}
+
+// Min returns the minimum element in the collection
+func (c *Collection[N, T]) Min() T {
+	if len(c.list) == 0 {
+		return *new(T)
+	}
+	var min T
+	for _, val := range c.list {
+		if min.IsNil() || val.Number() < min.Number() {
+			min = val
+		}
+	}
+	return min
+}
+
+// Partition splits the elements in the collection into two slices based on the given function
+func (c *Collection[N, T]) Partition(fn func(T) bool) ([]T, []T) {
+	var leftList []T
+	var rightList []T
+	for _, val := range c.list {
+		if fn(val) {
+			leftList = append(leftList, val)
+		} else {
+			rightList = append(rightList, val)
+		}
+	}
+	return leftList, rightList
+}
+
+// Reject returns a new slice with elements that do not pass the given function
+func (c *Collection[N, T]) Reject(fn func(T) bool) []T {
+	var rejectedList []T
+	for _, val := range c.list {
+		if !fn(val) {
+			rejectedList = append(rejectedList, val)
+		}
+	}
+	return rejectedList
+}
+
+// SkipUntil returns elements from the collection until the given function returns true
+func (c *Collection[N, T]) SkipUntil(fn func(T) bool) []T {
+	var skippedList []T
+	skip := true
+	for _, val := range c.list {
+		if skip && !fn(val) {
+			continue
+		}
+		skip = false
+		skippedList = append(skippedList, val)
+	}
+	return skippedList
+}
+
+// SkipWhile returns elements from the collection while the given function returns true
+func (c *Collection[N, T]) SkipWhile(fn func(T) bool) []T {
+	var skippedList []T
+	skip := true
+	for _, val := range c.list {
+		if skip && fn(val) {
+			continue
+		}
+		skip = false
+		skippedList = append(skippedList, val)
+	}
+	return skippedList
+}
+
+// Some checks if the given function returns true for any element in the collection
+func (c *Collection[N, T]) Some(fn func(T) bool) bool {
+	for _, val := range c.list {
+		if fn(val) {
+			return true
+		}
+	}
+	return false
+}
+
+// SortBy sorts the elements in the collection by the value returned by the given function
+func (c *Collection[N, T]) SortBy(fn func(T) int) *Collection[N, T] {
+	sort.Slice(c.list, func(i, j int) bool {
+		return fn(c.list[i]) < fn(c.list[j])
+	})
 
 	return c
 }
 
-// Prepend adds the given item to the beginning of the collection.
-func (c *collection[T]) Prepend(v *T) Collection[T] {
-	c.slice = append([]*T{v}, c.slice...)
+// SortByDesc sorts the elements in the collection by descending order of the value returned by the given function
+func (c *Collection[N, T]) SortByDesc(fn func(T) int) *Collection[N, T] {
+	sort.Slice(c.list, func(i, j int) bool {
+		return fn(c.list[i]) > fn(c.list[j])
+	})
 
 	return c
 }
 
-// Insert adds the given item at the given index.
-func (c *collection[T]) Insert(i int, v *T) Collection[T] {
-	c.slice = append(c.slice[:i], append([]*T{v}, c.slice[i:]...)...)
+// Sum returns the sum of the elements in the collection
+func (c *Collection[N, T]) Sum() N {
+	var sum N
+	for _, val := range c.list {
+		sum += val.Number()
+	}
+	return sum
+}
 
-	return c
+// TakeUntil returns elements from the collection until the given function returns true
+func (c *Collection[N, T]) TakeUntil(fn func(T) bool) []T {
+	var takenList []T
+	for _, val := range c.list {
+		if fn(val) {
+			break
+		}
+		takenList = append(takenList, val)
+	}
+	return takenList
+}
+
+// TakeWhile returns elements from the collection while the given function returns true
+func (c *Collection[N, T]) TakeWhile(fn func(T) bool) []T {
+	var takenList []T
+	for _, val := range c.list {
+		if !fn(val) {
+			break
+		}
+		takenList = append(takenList, val)
+	}
+	return takenList
+}
+
+// Unique returns a new slice with unique elements in the collection
+func (c *Collection[N, T]) Unique() []T {
+	var uniqueList []T
+	for _, item := range c.list {
+		isUnique := true
+		for _, uniqueItem := range uniqueList {
+			if item.Compare(uniqueItem) == 0 {
+				isUnique = false
+				break
+			}
+		}
+		if isUnique {
+			uniqueList = append(uniqueList, item)
+		}
+	}
+	return uniqueList
+}
+
+// Len returns the length of the collection
+func (c *Collection[N, T]) Len() int {
+	return len(c.list)
+}
+
+// Get returns the element at the given index
+func (c *Collection[N, T]) Get(index int) T {
+	return c.list[index]
 }
