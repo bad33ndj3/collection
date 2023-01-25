@@ -33,8 +33,6 @@ type Collectable[T any, N Number] interface {
 	Compare(other T) int
 	// Number returns a number representation of the value.
 	Number() N
-	// UID returns a unique representation of the value as a string.
-	UID() string
 	// IsNil returns true if the value is nil.
 	IsNil() bool
 }
