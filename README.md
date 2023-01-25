@@ -40,9 +40,6 @@ func (i *Item) Number() int {
 	return i.value
 }
 
-func (i *Item) UID() string {
-	return i.uid
-}
 func (i *Item) IsNil() bool {
 	return i == nil
 }
