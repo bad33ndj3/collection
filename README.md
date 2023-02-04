@@ -20,28 +20,10 @@ import (
 	"github.com/bad33ndj3/collection"
 )
 
-// Item a struct that implements the Comparable[T] interface
+// Item a struct that implements the Comparable[T] interface, methods are below.
 type Item struct {
 	value int
 	uid   string
-}
-
-func (i *Item) Compare(other *Item) int {
-	if i.value < other.value {
-		return -1
-	}
-	if i.value > other.value {
-		return 1
-	}
-	return 0
-}
-
-func (i *Item) Number() int {
-	return i.value
-}
-
-func (i *Item) IsNil() bool {
-	return i == nil
 }
 
 func main() {
@@ -79,6 +61,24 @@ func main() {
 	first := col.First()
 
 	// and more...
+}
+
+func (i *Item) Compare(other *Item) int {
+	if i.value < other.value {
+		return -1
+	}
+	if i.value > other.value {
+		return 1
+	}
+	return 0
+}
+
+func (i *Item) Number() int {
+	return i.value
+}
+
+func (i *Item) IsNil() bool {
+	return i == nil
 }
 
 ```

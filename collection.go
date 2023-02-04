@@ -26,10 +26,10 @@ func New[N Number, T Collectable[T, N]](list []T) *Collection[N, T] {
 
 // Collectable is an interface that combines the Comparable interface with the necessary methods for a collection.
 type Collectable[T any, N Number] interface {
-	// Compare compares the current value to another value of the same type
-	// It returns a negative number if the current value is less than the other value
-	// It returns a positive number if the current value is greater than the other value
-	// It returns zero if the current value is equal to the other value
+	// Compare compares the current value to another value of the same type.
+	// It returns a negative number if the current value is less than the other value.
+	// It returns a positive number if the current value is greater than the other value.
+	// It returns zero if the current value is equal to the other value.
 	Compare(other T) int
 	// Number returns a number representation of the value.
 	Number() N
@@ -37,7 +37,7 @@ type Collectable[T any, N Number] interface {
 	IsNil() bool
 }
 
-// Average calculates the average of the elements in the collection
+// Average calculates the average of the elements in the collection.
 func (c *Collection[N, T]) Average() N {
 	var sum N
 	for _, val := range c.list {
@@ -46,12 +46,12 @@ func (c *Collection[N, T]) Average() N {
 	return sum / N(len(c.list))
 }
 
-// Avg is an alias for Average
+// Avg is an alias for Average.
 func (c *Collection[N, T]) Avg() N {
 	return c.Average()
 }
 
-// Contains checks if the given value is present in the collection
+// Contains checks if the given value is present in the collection.
 func (c *Collection[N, T]) Contains(val T) bool {
 	for _, item := range c.list {
 		if item.Compare(val) == 0 {
@@ -61,7 +61,7 @@ func (c *Collection[N, T]) Contains(val T) bool {
 	return false
 }
 
-// Each iterates over the elements in the collection and applies the given function to each element
+// Each iterates over the elements in the collection and applies the given function to each element.
 func (c *Collection[N, T]) Each(fn func(T)) *Collection[N, T] {
 	for _, val := range c.list {
 		fn(val)
@@ -70,7 +70,7 @@ func (c *Collection[N, T]) Each(fn func(T)) *Collection[N, T] {
 	return c
 }
 
-// Every checks if the given function returns true for all elements in the collection
+// Every checks if the given function returns true for all elements in the collection.
 func (c *Collection[N, T]) Every(fn func(T) bool) bool {
 	for _, val := range c.list {
 		if !fn(val) {
@@ -80,7 +80,7 @@ func (c *Collection[N, T]) Every(fn func(T) bool) bool {
 	return true
 }
 
-// Filter returns a new slice with elements that pass the given function
+// Filter returns a new slice with elements that pass the given function.
 func (c *Collection[N, T]) Filter(fn func(T) bool) []T {
 	var filteredList []T
 	for _, val := range c.list {
@@ -91,7 +91,7 @@ func (c *Collection[N, T]) Filter(fn func(T) bool) []T {
 	return filteredList
 }
 
-// First returns the first element in the collection
+// First returns the first element in the collection.
 func (c *Collection[N, T]) First() T {
 	if len(c.list) > 0 {
 		return c.list[0]
@@ -99,7 +99,7 @@ func (c *Collection[N, T]) First() T {
 	return *new(T)
 }
 
-// FlatMap applies the given function to each element in the collection and flattens the resulting slices
+// FlatMap applies the given function to each element in the collection and flattens the resulting slices.
 func (c *Collection[N, T]) FlatMap(fn func(T) []T) []T {
 	var flatList []T
 	for _, val := range c.list {
@@ -108,7 +108,7 @@ func (c *Collection[N, T]) FlatMap(fn func(T) []T) []T {
 	return flatList
 }
 
-// GroupBy groups the elements in the collection by the key returned by the given function
+// GroupBy groups the elements in the collection by the key returned by the given function.
 func (c *Collection[N, T]) GroupBy(fn func(T) string) map[string][]T {
 	grouped := make(map[string][]T)
 	for _, val := range c.list {
@@ -118,7 +118,7 @@ func (c *Collection[N, T]) GroupBy(fn func(T) string) map[string][]T {
 	return grouped
 }
 
-// KeyBy creates a map of elements in the collection with keys returned by the given function
+// KeyBy creates a map of elements in the collection with keys returned by the given function.
 func (c *Collection[N, T]) KeyBy(fn func(T) string) map[string]T {
 	keyed := make(map[string]T)
 	for _, val := range c.list {
@@ -128,7 +128,7 @@ func (c *Collection[N, T]) KeyBy(fn func(T) string) map[string]T {
 	return keyed
 }
 
-// Map applies the given function to each element in the collection and returns a new slice
+// Map applies the given function to each element in the collection and returns a new slice.
 func (c *Collection[N, T]) Map(fn func(T) T) []T {
 	var mappedList []T
 	for _, val := range c.list {
@@ -137,7 +137,7 @@ func (c *Collection[N, T]) Map(fn func(T) T) []T {
 	return mappedList
 }
 
-// Max returns the maximum element in the collection
+// Max returns the maximum element in the collection.
 func (c *Collection[N, T]) Max() T {
 	if len(c.list) == 0 {
 		return *new(T)
@@ -151,7 +151,7 @@ func (c *Collection[N, T]) Max() T {
 	return max
 }
 
-// Min returns the minimum element in the collection
+// Min returns the minimum element in the collection.
 func (c *Collection[N, T]) Min() T {
 	if len(c.list) == 0 {
 		return *new(T)
@@ -165,7 +165,7 @@ func (c *Collection[N, T]) Min() T {
 	return min
 }
 
-// Partition splits the elements in the collection into two slices based on the given function
+// Partition splits the elements in the collection into two slices based on the given function.
 func (c *Collection[N, T]) Partition(fn func(T) bool) (passed []T, failed []T) {
 	for _, val := range c.list {
 		if fn(val) {
@@ -177,7 +177,7 @@ func (c *Collection[N, T]) Partition(fn func(T) bool) (passed []T, failed []T) {
 	return
 }
 
-// Reject returns a new slice with elements that do not pass the given function
+// Reject returns a new slice with elements that do not pass the given function.
 func (c *Collection[N, T]) Reject(fn func(T) bool) []T {
 	var rejectedList []T
 	for _, val := range c.list {
@@ -188,7 +188,7 @@ func (c *Collection[N, T]) Reject(fn func(T) bool) []T {
 	return rejectedList
 }
 
-// SkipUntil returns elements from the collection until the given function returns true
+// SkipUntil returns elements from the collection until the given function returns true.
 func (c *Collection[N, T]) SkipUntil(fn func(T) bool) []T {
 	var skippedList []T
 	skip := true
@@ -202,7 +202,7 @@ func (c *Collection[N, T]) SkipUntil(fn func(T) bool) []T {
 	return skippedList
 }
 
-// SkipWhile returns elements from the collection while the given function returns true
+// SkipWhile returns elements from the collection while the given function returns true.
 func (c *Collection[N, T]) SkipWhile(fn func(T) bool) []T {
 	var skippedList []T
 	skip := true
@@ -216,7 +216,7 @@ func (c *Collection[N, T]) SkipWhile(fn func(T) bool) []T {
 	return skippedList
 }
 
-// Some checks if the given function returns true for any element in the collection
+// Some checks if the given function returns true for any element in the collection.
 func (c *Collection[N, T]) Some(fn func(T) bool) bool {
 	for _, val := range c.list {
 		if fn(val) {
@@ -226,7 +226,7 @@ func (c *Collection[N, T]) Some(fn func(T) bool) bool {
 	return false
 }
 
-// SortBy sorts the elements in the collection by the value returned by the given function
+// SortBy sorts the elements in the collection by the value returned by the given function.
 func (c *Collection[N, T]) SortBy(fn func(T) int) *Collection[N, T] {
 	sort.Slice(c.list, func(i, j int) bool {
 		return fn(c.list[i]) < fn(c.list[j])
@@ -235,7 +235,7 @@ func (c *Collection[N, T]) SortBy(fn func(T) int) *Collection[N, T] {
 	return c
 }
 
-// SortByDesc sorts the elements in the collection by descending order of the value returned by the given function
+// SortByDesc sorts the elements in the collection by descending order of the value returned by the given function.
 func (c *Collection[N, T]) SortByDesc(fn func(T) int) *Collection[N, T] {
 	sort.Slice(c.list, func(i, j int) bool {
 		return fn(c.list[i]) > fn(c.list[j])
@@ -244,7 +244,7 @@ func (c *Collection[N, T]) SortByDesc(fn func(T) int) *Collection[N, T] {
 	return c
 }
 
-// Sum returns the sum of the elements in the collection
+// Sum returns the sum of the elements in the collection.
 func (c *Collection[N, T]) Sum() N {
 	var sum N
 	for _, val := range c.list {
@@ -253,7 +253,7 @@ func (c *Collection[N, T]) Sum() N {
 	return sum
 }
 
-// TakeUntil returns elements from the collection until the given function returns true
+// TakeUntil returns elements from the collection until the given function returns true.
 func (c *Collection[N, T]) TakeUntil(fn func(T) bool) []T {
 	var takenList []T
 	for _, val := range c.list {
@@ -265,7 +265,7 @@ func (c *Collection[N, T]) TakeUntil(fn func(T) bool) []T {
 	return takenList
 }
 
-// TakeWhile returns elements from the collection while the given function returns true
+// TakeWhile returns elements from the collection while the given function returns true.
 func (c *Collection[N, T]) TakeWhile(fn func(T) bool) []T {
 	var takenList []T
 	for _, val := range c.list {
@@ -277,7 +277,7 @@ func (c *Collection[N, T]) TakeWhile(fn func(T) bool) []T {
 	return takenList
 }
 
-// Unique returns a new slice with unique elements in the collection
+// Unique returns a new slice with unique elements in the collection.
 func (c *Collection[N, T]) Unique() []T {
 	var uniqueList []T
 	for _, item := range c.list {
@@ -295,12 +295,12 @@ func (c *Collection[N, T]) Unique() []T {
 	return uniqueList
 }
 
-// Len returns the length of the collection
+// Len returns the length of the collection.
 func (c *Collection[N, T]) Len() int {
 	return len(c.list)
 }
 
-// Get returns the element at the given index
+// Get returns the element at the given index.
 func (c *Collection[N, T]) Get(index int) T {
 	return c.list[index]
 }
