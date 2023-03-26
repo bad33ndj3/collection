@@ -11,19 +11,6 @@ type Number interface {
 	int | int8 | int16 | int32 | int64 | float32 | float64
 }
 
-// Collection is a generic type that holds a slice of values of type T.
-type Collection[N Number, T Collectable[T, N]] struct {
-	// list holds the slice of values
-	list []T
-}
-
-// New returns a new Collection of type T.
-func New[N Number, T Collectable[T, N]](list []T) *Collection[N, T] {
-	return &Collection[N, T]{
-		list: list,
-	}
-}
-
 // Collectable is an interface that combines the Comparable interface with the necessary methods for a collection.
 type Collectable[T any, N Number] interface {
 	// Compare compares the current value to another value of the same type.
@@ -35,6 +22,19 @@ type Collectable[T any, N Number] interface {
 	Number() N
 	// IsNil returns true if the value is nil.
 	IsNil() bool
+}
+
+// Collection is a generic type that holds a slice of values of type T.
+type Collection[N Number, T Collectable[T, N]] struct {
+	// list holds the slice of values
+	list []T
+}
+
+// New returns a new Collection of type T.
+func New[N Number, T Collectable[T, N]](list []T) *Collection[N, T] {
+	return &Collection[N, T]{
+		list: list,
+	}
 }
 
 // Average calculates the average of the elements in the collection.
@@ -83,6 +83,13 @@ func (c *Collection[N, T]) Every(fn func(T) bool) bool {
 // Filter returns a new slice with elements that pass the given function.
 func (c *Collection[N, T]) Filter(fn func(T) bool) []T {
 	var filteredList []T
+	expectedLength := 0
+	for _, val := range c.list {
+		if fn(val) {
+			expectedLength++
+		}
+	}
+	filteredList = make([]T, 0, expectedLength)
 	for _, val := range c.list {
 		if fn(val) {
 			filteredList = append(filteredList, val)
@@ -165,6 +172,11 @@ func (c *Collection[N, T]) Min() T {
 	return min
 }
 
+// Nth returns the element at the given index.
+func (c *Collection[N, T]) Nth(index int) T {
+	return c.list[index]
+}
+
 // Partition splits the elements in the collection into two slices based on the given function.
 func (c *Collection[N, T]) Partition(fn func(T) bool) (passed []T, failed []T) {
 	for _, val := range c.list {
@@ -226,20 +238,18 @@ func (c *Collection[N, T]) Some(fn func(T) bool) bool {
 	return false
 }
 
-// SortBy sorts the elements in the collection by the value returned by the given function.
-func (c *Collection[N, T]) SortBy(fn func(T) int) *Collection[N, T] {
-	sort.Slice(c.list, func(i, j int) bool {
-		return fn(c.list[i]) < fn(c.list[j])
-	})
-
-	return c
-}
-
-// SortByDesc sorts the elements in the collection by descending order of the value returned by the given function.
-func (c *Collection[N, T]) SortByDesc(fn func(T) int) *Collection[N, T] {
-	sort.Slice(c.list, func(i, j int) bool {
-		return fn(c.list[i]) > fn(c.list[j])
-	})
+// Sort sorts the elements in the collection by the value returned by the given function.
+// The order can be specified with the asc or desc parameter.
+func (c *Collection[N, T]) Sort(fn func(T) int, desc bool) *Collection[N, T] {
+	if desc {
+		sort.Slice(c.list, func(i, j int) bool {
+			return fn(c.list[i]) > fn(c.list[j])
+		})
+	} else {
+		sort.Slice(c.list, func(i, j int) bool {
+			return fn(c.list[i]) < fn(c.list[j])
+		})
+	}
 
 	return c
 }
@@ -277,18 +287,19 @@ func (c *Collection[N, T]) TakeWhile(fn func(T) bool) []T {
 	return takenList
 }
 
-// Unique returns a new slice with unique elements in the collection.
+// Unique returns a new slice with unique elements in the collection by filtering out elements that are not unique.
+// Uniqueness is determined by using the Compare method of the element type.
 func (c *Collection[N, T]) Unique() []T {
 	var uniqueList []T
 	for _, item := range c.list {
-		isUnique := true
-		for _, uniqueItem := range uniqueList {
-			if item.Compare(uniqueItem) == 0 {
-				isUnique = false
+		unique := true
+		for _, otherItem := range uniqueList {
+			if item.Compare(otherItem) == 0 {
+				unique = false
 				break
 			}
 		}
-		if isUnique {
+		if unique {
 			uniqueList = append(uniqueList, item)
 		}
 	}
@@ -298,9 +309,4 @@ func (c *Collection[N, T]) Unique() []T {
 // Len returns the length of the collection.
 func (c *Collection[N, T]) Len() int {
 	return len(c.list)
-}
-
-// Get returns the element at the given index.
-func (c *Collection[N, T]) Get(index int) T {
-	return c.list[index]
 }

@@ -203,23 +203,23 @@ func (s *CollectionTestSuite) TestSome() {
 	s.False(hasOver4)
 }
 
-func (s *CollectionTestSuite) TestSortBy() {
-	sorted := s.col.SortBy(func(val *Item) int {
+func (s *CollectionTestSuite) TestSort() {
+	sorted := s.col.Sort(func(val *Item) int {
 		return val.value
-	})
+	}, false)
 	s.Equal(4, sorted.Len())
 	for i := 1; i < sorted.Len(); i++ {
-		s.True(sorted.Get(i-1).value <= sorted.Get(i).value)
+		s.True(sorted.Nth(i-1).value <= sorted.Nth(i).value)
 	}
 }
 
 func (s *CollectionTestSuite) TestSortByDesc() {
-	sorted := s.col.SortByDesc(func(val *Item) int {
+	sorted := s.col.Sort(func(val *Item) int {
 		return val.value
-	})
+	}, true)
 	s.Equal(sorted.Len(), 4)
 	for i := 1; i < sorted.Len(); i++ {
-		s.True(sorted.Get(i-1).value >= sorted.Get(i).value)
+		s.True(sorted.Nth(i-1).value >= sorted.Nth(i).value)
 	}
 }
 
@@ -238,8 +238,8 @@ func (s *CollectionTestSuite) TestTakeUntil() {
 	}
 }
 
-func (s *CollectionTestSuite) TestGet() {
-	item := s.col.Get(0)
+func (s *CollectionTestSuite) TestNth() {
+	item := s.col.Nth(0)
 	s.Equal(1, item.value)
 }
 
@@ -275,10 +275,8 @@ func (s *CollectionTestSuite) TestUnique() {
 	}
 	col := New[int, *Item](data)
 	unique := col.Unique()
-	s.Len(unique, 3)
-	for _, val := range unique {
-		s.True(val.value == 1 || val.value == 2 || val.value == 3)
-	}
+	s.Require().Len(unique, 1)
+	s.Equal(3, unique[0].value)
 }
 
 // Item a struct that implements the Comparable[T] interface
